@@ -27,7 +27,6 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.GridLayout;
 
-
 public class CrazyArcadeClientView extends JFrame {
 	public static Random random = new Random();
 	public static final int BLOCK_SIZE = 52;
@@ -107,7 +106,7 @@ public class CrazyArcadeClientView extends JFrame {
 		contentPane.add(scrollPane);
 		textArea = new JTextPane();
 		scrollPane.setViewportView(textArea);
-		textArea.setEditable(true);
+		textArea.setEditable(false);
 		textArea.setFont(new Font("굴림체", Font.PLAIN, 14));
 
 		txtInput = new JTextField();
@@ -179,16 +178,14 @@ public class CrazyArcadeClientView extends JFrame {
 			txtInput.addActionListener(action);
 			ImageSendAction action2 = new ImageSendAction();
 			imgBtn.addActionListener(action2);
-
-
 		} catch (NumberFormatException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			AppendText("connect error");
 		}
-
+		update(getGraphics());
+		repaint();
 	}
-	
 
 	// Server Message를 수신해서 화면에 표시
 	class ListenNetwork extends Thread {

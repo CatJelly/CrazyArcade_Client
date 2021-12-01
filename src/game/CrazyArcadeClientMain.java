@@ -15,7 +15,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class CrazyArcadeClientMain extends JFrame {
-
+	CrazyArcadeClientMain mainFrame = null;
 	/**
 	 * 
 	 */
@@ -92,16 +92,19 @@ public class CrazyArcadeClientMain extends JFrame {
 		txtUserName.addActionListener(action);
 		txtIpAddress.addActionListener(action);
 		txtPortNumber.addActionListener(action);
+		mainFrame = this;
 	}
 	class Myaction implements ActionListener // 占쏙옙占쏙옙클占쏙옙占쏙옙占쏙옙 占쌓쇽옙 占싱븝옙트 처占쏙옙 클占쏙옙占쏙옙
 	{
+		
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String username = txtUserName.getText().trim();
 			String ip_addr = txtIpAddress.getText().trim();
 			String port_no = txtPortNumber.getText().trim();
 			CrazyArcadeClientView view = new CrazyArcadeClientView(username, ip_addr, port_no);
-			setVisible(false);
+			mainFrame.dispose();
+			System.out.println();
 		}
 	}
 }
