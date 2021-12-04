@@ -94,7 +94,8 @@ public class CrazyArcadeClientView extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				ChatMsg msg = new ChatMsg(UserName, "900", "Game Start");
 				SendObject(msg);
-				gamePanel.setFocusable(true);
+				//gamePanel.setFocusable(true);
+				gamePanel.requestFocus();
 			}
 		});
 		contentPane.add(startBtn);
@@ -183,8 +184,6 @@ public class CrazyArcadeClientView extends JFrame {
 			e.printStackTrace();
 			AppendText("connect error");
 		}
-		update(getGraphics());
-		repaint();
 	}
 
 	// Server Message를 수신해서 화면에 표시
@@ -278,7 +277,6 @@ public class CrazyArcadeClientView extends JFrame {
 						ois.close();
 						oos.close();
 						socket.close();
-
 						break;
 					} catch (Exception ee) {
 						break;
@@ -289,7 +287,7 @@ public class CrazyArcadeClientView extends JFrame {
 		}
 	}
 	class GamePanel extends JPanel implements Runnable {
-		public final int MOTION_DELAY = 170;
+		public final int MOTION_DELAY = 30;
 		public MapObject [][] mapObjects;
 		public Graphics buffG;
 		public int xAdd = 10;
@@ -326,16 +324,62 @@ public class CrazyArcadeClientView extends JFrame {
 					if(mapObjects[i][j] instanceof Bomb) {
 						Bomb bomb = (Bomb)mapObjects[i][j];
 						int motionIdx = bomb.bombImgIdx; 
-						
-						g.drawImage(
-								bomb.bombImage[(int)(motionIdx++ / bomb.BOMB_DELAY)].getImage(),
-								x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-								BLOCK_SIZE, BLOCK_SIZE + 10, 
-								null);
-						if(motionIdx == bomb.bombImage.length * bomb.BOMB_DELAY) {
-							motionIdx = 0;
+						if(bomb.explodeStatus == false) {
+							g.drawImage(
+									bomb.bombImage[(int)(motionIdx++ / bomb.BOMB_DELAY)].getImage(),
+									x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+									BLOCK_SIZE, BLOCK_SIZE + 10, 
+									null);
+							if(motionIdx == bomb.bombImage.length * bomb.BOMB_DELAY) {
+								motionIdx = 0;
+							}
+							bomb.bombImgIdx = motionIdx;
 						}
-						bomb.bombImgIdx = motionIdx;
+						else {
+							g.drawImage(
+									bomb.centerImage[(int)(motionIdx++ / bomb.CENTER_DELAY)].getImage(),
+									x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+									BLOCK_SIZE, BLOCK_SIZE + 10, 
+									null);
+							if(motionIdx == bomb.bombImage.length * bomb.CENTER_DELAY) {
+								motionIdx = 0;
+							}
+							bomb.bombImgIdx = motionIdx;
+							int explodeIdx = bomb.explodeImgIdx;
+							if(bomb.explode(x - 1, y)) {
+								g.drawImage(
+										bomb.left1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
+										(x - 1) * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										null);	
+							}
+							if(bomb.explode(x + 1, y)) {
+								g.drawImage(
+										bomb.right1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
+										(x + 2) * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										null);
+							}
+							if(bomb.explode(x, y - 1)) {
+								g.drawImage(
+										bomb.up1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
+										x * BLOCK_SIZE + xAdd, (y - 1) * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										null);	
+							}
+							if(bomb.explode(x, y + 1)) {
+								g.drawImage(
+										bomb.down1Image[(int)(explodeIdx++ / bomb.EXPLODE_DELAY)].getImage(),
+										x * BLOCK_SIZE + xAdd, (y + 2) * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										null);	
+							}
+							
+							if(explodeIdx == bomb.left1Image.length * bomb.EXPLODE_DELAY) {
+								explodeIdx = 0;
+							}
+							bomb.explodeImgIdx = explodeIdx;
+						}
 					}
 					else {
 						g.drawImage(

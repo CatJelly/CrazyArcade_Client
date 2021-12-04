@@ -84,14 +84,20 @@ public class Map {
 	
 	public boolean collideCheck(int xPos, int yPos) {
 		if((xPos < 0 || yPos < 0) || (xPos > 14 || yPos > 12))
-			return false;
+			return true;
 		
 		if(mapInfo[yPos][xPos] == 1 || mapInfo[yPos][xPos] == 2)
 			return true;
 		else return false;
 	}
-	public void setBomb(Bomb bomb) {
+	public MapObject setBomb(Bomb bomb) {
+		MapObject origin = objects[bomb.yPos][bomb.xPos]; 
 		mapInfo[bomb.yPos][bomb.xPos] = 4;
 		objects[bomb.yPos][bomb.xPos] = bomb;
+		return origin;
+	}
+	public synchronized void deleteBomb(Bomb bomb) {
+		mapInfo[bomb.yPos][bomb.xPos] = 0;
+		objects[bomb.yPos][bomb.xPos] = bomb.origin;
 	}
 }
