@@ -1,14 +1,17 @@
 package game;
 
+import java.util.Vector;
+
 import javax.swing.ImageIcon;
 
 import game.CrazyArcadeClientView.GamePanel;
 
 public class Bomb extends MapObject {
 	public MapObject origin = null;
-	public final int BOMB_DELAY = 40;
-	public final int CENTER_DELAY = 15;
-	public final int EXPLODE_DELAY = 35;
+	//public final int BOMB_DELAY = 40; //노트북
+	public final int BOMB_DELAY = 200; //컴퓨터
+	public final int CENTER_DELAY = 70;
+	public final int EXPLODE_DELAY = 110;
 	public int bombImgIdx = 0;
 	public int explodeImgIdx = 0;
 	public long startTime;
@@ -24,9 +27,14 @@ public class Bomb extends MapObject {
 	public ImageIcon [] left2Image = new ImageIcon[11];
 	public ImageIcon [] right1Image = new ImageIcon[11];
 	public ImageIcon [] right2Image = new ImageIcon[11];
-	public Bomb(int xPos, int yPos, int code, String name, GamePanel gamePanel, Map map) {
+	
+	public Vector<Bomb> bombs = new Vector<Bomb>();
+	
+	
+	public Bomb(int xPos, int yPos, int code, String name, GamePanel gamePanel, Map map, Vector<Bomb> bombs) {
 		super(xPos, yPos, code, name, gamePanel);
 		this.map = map;
+		this.bombs = bombs;
 		
 		for(int i=0; i<bombImage.length; i++) 
 			this.bombImage[i] = new ImageIcon(String.format("bomb/bomb%d.png", i));
@@ -60,7 +68,7 @@ public class Bomb extends MapObject {
 			long currentTime = System.currentTimeMillis();
 			long diff = (currentTime - startTime) / 1000;
 			
-			if(diff > 2) { 
+			if(diff > 1) { 
 				explodeStatus = true;
 				explodeStart = System.currentTimeMillis();
 				bombImgIdx = 0;
@@ -70,8 +78,9 @@ public class Bomb extends MapObject {
 		while(true) {
 			long explodeCurrent = System.currentTimeMillis();
 			long diff = (explodeCurrent - explodeStart) / 1000;
-			if(diff > 1) {
-				map.deleteBomb(this);		
+			if(diff > 0.4) {
+				bombs.remove(this);
+				map.deleteBomb(this);
 				break;
 			}
 		}

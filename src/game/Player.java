@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -17,9 +18,9 @@ public class Player extends MapObject {
 	private Socket socket;
 	public int left_right = 0;
 	public int up_down = 0;
-	public int bomb;
-	public int power;
-	public int speed;
+	public int bomb_n;
+	public int power_n;
+	public int speed_n;
 	public int direction;
 	public int motionIdx;
 	public boolean moveStatus = false;
@@ -28,13 +29,14 @@ public class Player extends MapObject {
 	public ImageIcon [] downImage = new ImageIcon[7];
 	public ImageIcon [] leftImage = new ImageIcon[6];
 	public ImageIcon [] rightImage = new ImageIcon[6];
+	public Vector<Bomb> bombs = new Vector<Bomb>();
 	
 	public Player(int xPos, int yPos, int code, String name, GamePanel gamePanel, Map map) {
 		super(xPos, yPos, code, name, gamePanel);
 		this.map = map;
-		this.bomb = 1;
-		this.power = 1;
-		this.speed = 1;
+		this.bomb_n = 1;
+		this.power_n = 1;
+		this.speed_n = 1;
 		direction = 0;
 		motionIdx = 0;
 		
@@ -70,10 +72,11 @@ public class Player extends MapObject {
 			yPos += 1;
 		}
 	}
-	public void setBomb() {
-		Bomb bomb = new Bomb(this.xPos, this.yPos, 4, "Bomb", this.gamePanel, map);
+	public void setBomb(int xPos, int yPos) {
+		Bomb bomb = new Bomb(xPos, yPos, 4, "Bomb", this.gamePanel, map, bombs);
 		bomb.origin = map.setBomb(bomb);
 		bomb.setStartTime(System.currentTimeMillis());
+		bombs.add(bomb);
 		bomb.start();
 	}
 }

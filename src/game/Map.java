@@ -44,19 +44,11 @@ public class Map {
 		playerCnt = 0;
 		for(int i=0; i<this.mapInfo.length; i++) {
 			for(int j=0; j<this.mapInfo[i].length; j++) {
-				switch(this.mapInfo[i][j]) {
-				case 0:
-				case 3:
-				case 4:
-				case 5:
-					objects[i][j] = (new Tile(j, i, 0, "Tile", gamePanel));
-					break;
-				case 1:
-					objects[i][j] = (new Wall(j, i, 1, "Wall", gamePanel));
-					break;
-				case 2:
-					objects[i][j] = (new Block(j, i, 2, "Block", gamePanel));
-					break;
+				if(mapInfo[i][j] != objects[i][j].code) {
+					switch(this.mapInfo[i][j]) {
+					case 0:
+						objects[i][j] = (new Tile(j, i, 0, "Tile", gamePanel));
+					}
 				}
 			}
 		}
@@ -87,6 +79,14 @@ public class Map {
 			return true;
 		
 		if(mapInfo[yPos][xPos] == 1 || mapInfo[yPos][xPos] == 2)
+			return true;
+		else return false;
+	}
+	public boolean brokeCheck(int xPos, int yPos) {
+		if((xPos < 0 || yPos < 0) || (xPos > 14 || yPos > 12))
+			return false;
+		
+		if(mapInfo[yPos][xPos] == 2)
 			return true;
 		else return false;
 	}

@@ -44,7 +44,8 @@ public class CrazyArcadeClientView extends JFrame {
 	private JButton btnSend;
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
 	private Socket socket; // 연결소켓
-	public Player [] players;
+	public Player [] players = null;
+	public MapObject [][] mapObjects = null;
 	private int playerNum;
 
 	private ObjectInputStream ois;
@@ -247,13 +248,20 @@ public class CrazyArcadeClientView extends JFrame {
 						players[cm.playerNum].up_down = cm.up_down;
 						players[cm.playerNum].motionIdx = cm.motionIdx;
 						players[cm.playerNum].xPos = cm.p_xPos; 
-						players[cm.playerNum].yPos = cm.p_yPos;	
-						players[playerNum].positionCheck();
+						players[cm.playerNum].yPos = cm.p_yPos;
+						players[cm.playerNum].positionCheck();
 						break;
 //					case "601":
 //						players[playerNum].positionCheck();
 //						break;
 					case "700": //폭탄 설치
+						int bombX = cm.bomb_xPos;
+						int bombY = cm.bomb_yPos;
+						players[cm.playerNum].setBomb(bombX, bombY);
+						break;
+					case "702":
+						map.mapInfo = cm.mapInfo;
+						map.refreshMapInfo();
 						break;
 					case "800": //플레이어 사살
 						break;
@@ -287,8 +295,8 @@ public class CrazyArcadeClientView extends JFrame {
 		}
 	}
 	class GamePanel extends JPanel implements Runnable {
-		public final int MOTION_DELAY = 30;
-		public MapObject [][] mapObjects;
+		//public final int MOTION_DELAY = 30; //노트북
+		public final int MOTION_DELAY = 120; //컴퓨터
 		public Graphics buffG;
 		public int xAdd = 10;
 		public int yAdd = 10;
@@ -305,10 +313,9 @@ public class CrazyArcadeClientView extends JFrame {
 		
 		@Override
 		public void run() {
-			players = map.getPlayers();
-			mapObjects = map.getMapObjects();
-			
 			while(true) {
+				players = map.getPlayers();
+				mapObjects = map.getMapObjects();
 				repaint();
 			}
 		}
@@ -316,144 +323,173 @@ public class CrazyArcadeClientView extends JFrame {
 		@Override
 		public void paint(Graphics g) {
 			super.paint(g);
-			for(int i=0; i<mapObjects.length; i++) {
-				for(int j=0; j<mapObjects[i].length; j++) {
-					int x = mapObjects[i][j].xPos;
-					int y = mapObjects[i][j].yPos;
-					
-					if(mapObjects[i][j] instanceof Bomb) {
-						Bomb bomb = (Bomb)mapObjects[i][j];
-						int motionIdx = bomb.bombImgIdx; 
-						if(bomb.explodeStatus == false) {
-							g.drawImage(
-									bomb.bombImage[(int)(motionIdx++ / bomb.BOMB_DELAY)].getImage(),
-									x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-									BLOCK_SIZE, BLOCK_SIZE + 10, 
-									null);
-							if(motionIdx == bomb.bombImage.length * bomb.BOMB_DELAY) {
-								motionIdx = 0;
-							}
-							bomb.bombImgIdx = motionIdx;
-						}
-						else {
-							g.drawImage(
-									bomb.centerImage[(int)(motionIdx++ / bomb.CENTER_DELAY)].getImage(),
-									x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-									BLOCK_SIZE, BLOCK_SIZE + 10, 
-									null);
-							if(motionIdx == bomb.bombImage.length * bomb.CENTER_DELAY) {
-								motionIdx = 0;
-							}
-							bomb.bombImgIdx = motionIdx;
-							int explodeIdx = bomb.explodeImgIdx;
-							if(bomb.explode(x - 1, y)) {
+			if(mapObjects != null) {
+				for(int i=0; i<mapObjects.length; i++) {
+					for(int j=0; j<mapObjects[i].length; j++) {
+						if(mapObjects[i][j] != null) {
+							int x = mapObjects[i][j].xPos;
+							int y = mapObjects[i][j].yPos;
+							
+							if(!(mapObjects[i][j] instanceof Bomb)) {
 								g.drawImage(
-										bomb.left1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
-										(x - 1) * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-										BLOCK_SIZE, BLOCK_SIZE + 10, 
-										null);	
-							}
-							if(bomb.explode(x + 1, y)) {
-								g.drawImage(
-										bomb.right1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
-										(x + 2) * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+										mapObjects[i][j].image.getImage(),
+										x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
 										BLOCK_SIZE, BLOCK_SIZE + 10, 
 										null);
 							}
-							if(bomb.explode(x, y - 1)) {
-								g.drawImage(
-										bomb.up1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
-										x * BLOCK_SIZE + xAdd, (y - 1) * BLOCK_SIZE + i * 7 + yAdd, 
-										BLOCK_SIZE, BLOCK_SIZE + 10, 
-										null);	
-							}
-							if(bomb.explode(x, y + 1)) {
-								g.drawImage(
-										bomb.down1Image[(int)(explodeIdx++ / bomb.EXPLODE_DELAY)].getImage(),
-										x * BLOCK_SIZE + xAdd, (y + 2) * BLOCK_SIZE + i * 7 + yAdd, 
-										BLOCK_SIZE, BLOCK_SIZE + 10, 
-										null);	
-							}
-							
-							if(explodeIdx == bomb.left1Image.length * bomb.EXPLODE_DELAY) {
-								explodeIdx = 0;
-							}
-							bomb.explodeImgIdx = explodeIdx;
-						}
+						}														
 					}
-					else {
-						g.drawImage(
-								mapObjects[i][j].image.getImage(),
-								x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-								BLOCK_SIZE, BLOCK_SIZE + 10, 
-								null);	
+				}
+				for(int i=0; i<mapObjects.length; i++) {
+					for(int j=0; j<mapObjects[i].length; j++) {
+						int x = mapObjects[i][j].xPos;
+						int y = mapObjects[i][j].yPos;
+						
+						if(mapObjects[i][j] instanceof Bomb) {
+							Bomb bomb = (Bomb)mapObjects[i][j];
+							int motionIdx = bomb.bombImgIdx; 
+							if(bomb.explodeStatus == false) {
+								g.drawImage(
+										bomb.bombImage[(int)(motionIdx++ / bomb.BOMB_DELAY)].getImage(),
+										x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										null);
+								if(motionIdx == bomb.bombImage.length * bomb.BOMB_DELAY) {
+									motionIdx = 0;
+								}
+								bomb.bombImgIdx = motionIdx;
+							}
+							else {
+								g.drawImage(
+										bomb.centerImage[(int)(motionIdx++ / bomb.CENTER_DELAY)].getImage(),
+										x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										null);
+								if(motionIdx == bomb.bombImage.length * bomb.CENTER_DELAY) {
+									motionIdx = 0;
+								}
+								bomb.bombImgIdx = motionIdx;
+								int explodeIdx = bomb.explodeImgIdx;
+								if(bomb.explode(x - 1, y)) {
+									g.drawImage(
+											bomb.left1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
+											(x - 1) * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+											BLOCK_SIZE, BLOCK_SIZE + 10, 
+											null);	
+								}
+								if(bomb.explode(x + 1, y)) {
+									g.drawImage(
+											bomb.right1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
+											(x + 1) * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+											BLOCK_SIZE, BLOCK_SIZE + 10, 
+											null);
+								}
+								if(bomb.explode(x, y - 1)) {
+									g.drawImage(
+											bomb.up1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
+											x * BLOCK_SIZE + xAdd, (y - 1) * BLOCK_SIZE + i * 7 + yAdd, 
+											BLOCK_SIZE, BLOCK_SIZE + 10, 
+											null);	
+								}
+								if(bomb.explode(x, y + 1)) {
+									g.drawImage(
+											bomb.down1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
+											x * BLOCK_SIZE + xAdd, (y + 1) * BLOCK_SIZE + i * 7 + yAdd, 
+											BLOCK_SIZE, BLOCK_SIZE + 10, 
+											null);	
+								}
+								explodeIdx++;
+								if(explodeIdx == bomb.left1Image.length * bomb.EXPLODE_DELAY) {
+									String msg = "explode end";
+									explodeIdx = 0;
+									bomb.explodeImgIdx = explodeIdx;
+									if(map.brokeCheck(x - 1, y)) {
+										map.mapInfo[y][x-1] = 0;
+									}
+									if(map.brokeCheck(x + 1, y)) {
+										map.mapInfo[y][x+1] = 0;
+									}
+									if(map.brokeCheck(x, y - 1)) {
+										map.mapInfo[y-1][x] = 0;
+									}
+									if(map.brokeCheck(x, y + 1)) {
+										map.mapInfo[y+1][x] = 0;
+									}
+									map.mapInfo[y][x] = 0;
+									SendMessage(msg, "702");
+								}
+								bomb.explodeImgIdx = explodeIdx;
+							}
+						}
 					}
 				}
 			}
-			for(int i=0; i<players.length; i++) {
-				if(players[i] != null) {
-					int xPosition = players[i].xPos * BLOCK_SIZE + players[i].left_right + xAdd;
-					int yPosition = players[i].yPos * BLOCK_SIZE + players[i].up_down + yAdd;
-					int motionIdx = players[i].motionIdx;
-					
-					switch(players[i].direction) {
-					case 0: //wait
-						g.drawImage(
-								players[i].waitImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
-								xPosition, yPosition, 
-								BLOCK_SIZE, BLOCK_SIZE + 20,
-								null);
-						if(players[i].moveStatus == true) 
-							motionIdx++;
-						if(motionIdx == players[i].waitImage.length * MOTION_DELAY)
-							motionIdx = 0;
-						break;
-					case 1: //up
-						g.drawImage(
-								players[i].upImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
-								xPosition, yPosition, 
-								BLOCK_SIZE, BLOCK_SIZE + 20,
-								null);
-						if(players[i].moveStatus == true) 
-							motionIdx++;
-						if(motionIdx == players[i].upImage.length * MOTION_DELAY)
-							motionIdx = 0;
-						break;
-					case 2: //down
-						g.drawImage(
-								players[i].downImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
-								xPosition, yPosition, 
-								BLOCK_SIZE, BLOCK_SIZE + 20,
-								null);
-						if(players[i].moveStatus == true) 
-							motionIdx++;
-						if(motionIdx == players[i].downImage.length * MOTION_DELAY)
-							motionIdx = 0;
-						break;
-					case 3: //left
-						g.drawImage(
-								players[i].leftImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
-								xPosition, yPosition, 
-								BLOCK_SIZE, BLOCK_SIZE + 20,
-								null);
-						if(players[i].moveStatus == true) 
-							motionIdx++;
-						if(motionIdx == players[i].leftImage.length * MOTION_DELAY)
-							motionIdx = 0;
-						break;
-					case 4: //right
-						g.drawImage(
-								players[i].rightImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
-								xPosition, yPosition, 
-								BLOCK_SIZE, BLOCK_SIZE + 20,
-								null);
-						if(players[i].moveStatus == true) 
-							motionIdx++;
-						if(motionIdx == players[i].rightImage.length * MOTION_DELAY)
-							motionIdx = 0;
-						break;
-					}	
-					players[i].motionIdx = motionIdx;
+			if(players != null) {
+				for(int i=0; i<players.length; i++) {
+					if(players[i] != null) {
+						int xPosition = players[i].xPos * BLOCK_SIZE + players[i].left_right + xAdd;
+						int yPosition = players[i].yPos * BLOCK_SIZE + players[i].up_down + yAdd;
+						int motionIdx = players[i].motionIdx;
+						
+						switch(players[i].direction) {
+						case 0: //wait
+							g.drawImage(
+									players[i].waitImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
+									xPosition, yPosition, 
+									BLOCK_SIZE, BLOCK_SIZE + 20,
+									null);
+							if(players[i].moveStatus == true) 
+								motionIdx++;
+							if(motionIdx == players[i].waitImage.length * MOTION_DELAY)
+								motionIdx = 0;
+							break;
+						case 1: //up
+							g.drawImage(
+									players[i].upImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
+									xPosition, yPosition, 
+									BLOCK_SIZE, BLOCK_SIZE + 20,
+									null);
+							if(players[i].moveStatus == true) 
+								motionIdx++;
+							if(motionIdx == players[i].upImage.length * MOTION_DELAY)
+								motionIdx = 0;
+							break;
+						case 2: //down
+							g.drawImage(
+									players[i].downImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
+									xPosition, yPosition, 
+									BLOCK_SIZE, BLOCK_SIZE + 20,
+									null);
+							if(players[i].moveStatus == true) 
+								motionIdx++;
+							if(motionIdx == players[i].downImage.length * MOTION_DELAY)
+								motionIdx = 0;
+							break;
+						case 3: //left
+							g.drawImage(
+									players[i].leftImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
+									xPosition, yPosition, 
+									BLOCK_SIZE, BLOCK_SIZE + 20,
+									null);
+							if(players[i].moveStatus == true) 
+								motionIdx++;
+							if(motionIdx == players[i].leftImage.length * MOTION_DELAY)
+								motionIdx = 0;
+							break;
+						case 4: //right
+							g.drawImage(
+									players[i].rightImage[(int)(motionIdx / MOTION_DELAY)].getImage(),
+									xPosition, yPosition, 
+									BLOCK_SIZE, BLOCK_SIZE + 20,
+									null);
+							if(players[i].moveStatus == true) 
+								motionIdx++;
+							if(motionIdx == players[i].rightImage.length * MOTION_DELAY)
+								motionIdx = 0;
+							break;
+						}	
+						players[i].motionIdx = motionIdx;
+					}
 				}
 			}
 		}
@@ -739,6 +775,15 @@ public class CrazyArcadeClientView extends JFrame {
 //			bb = MakePacket(msg);
 //			dos.write(bb, 0, bb.length);
 			ChatMsg obcm = new ChatMsg(UserName, protocol, msg);
+			if(protocol.equals("700")) {
+				obcm.bomb_xPos = players[playerNum].xPos;
+				obcm.bomb_yPos = players[playerNum].yPos;
+			}
+			else if(protocol.equals("701")) {
+				obcm.bomb_xPos = players[playerNum].xPos;
+				obcm.bomb_yPos = players[playerNum].yPos;
+			}
+			obcm.mapInfo = map.mapInfo;
 			obcm.left_right = players[playerNum].left_right;
 			obcm.up_down = players[playerNum].up_down;
 			obcm.p_xPos = players[playerNum].xPos;
@@ -836,7 +881,6 @@ public class CrazyArcadeClientView extends JFrame {
 				SendMessage(msg, "601");
 				break;
 			case KeyEvent.VK_SPACE:
-				players[playerNum].setBomb();
 				msg = "bomb_set";
 				SendMessage(msg, "700");
 				break;

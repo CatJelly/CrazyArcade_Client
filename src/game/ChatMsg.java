@@ -20,6 +20,9 @@ class ChatMsg implements Serializable {
 	public int direction;
 	public int motionIdx;
 	public int playerNum;
+	public int bomb_xPos, bomb_yPos;
+	public int bombImgIdx;
+	public int explodeIdx;
 
 	public ChatMsg(String UserName, String code, String msg) {
 		this.code = code;
