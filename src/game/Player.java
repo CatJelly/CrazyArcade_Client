@@ -73,10 +73,12 @@ public class Player extends MapObject {
 		}
 	}
 	public void setBomb(int xPos, int yPos) {
-		Bomb bomb = new Bomb(xPos, yPos, 4, "Bomb", this.gamePanel, map, bombs);
-		bomb.origin = map.setBomb(bomb);
-		bomb.setStartTime(System.currentTimeMillis());
-		bombs.add(bomb);
-		bomb.start();
+		if(map.mapInfo[yPos][xPos] != 4) {
+			Bomb bomb = new Bomb(xPos, yPos, 4, "Bomb", this.gamePanel, map, bombs);
+			bomb.origin = map.setBomb(bomb);
+			bomb.setStartTime(System.currentTimeMillis());
+			bombs.add(bomb);
+			bomb.start();	
+		}	
 	}
 }

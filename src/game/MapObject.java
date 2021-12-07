@@ -4,7 +4,7 @@ import javax.swing.*;
 import game.CrazyArcadeClientView.GamePanel;
 
 public abstract class MapObject extends Thread {
-	protected static final int BLOCK_SIZE = 52;
+	protected static final int BLOCK_SIZE = 42;
 	public int xPos;
 	public int yPos;
 	public int code;
