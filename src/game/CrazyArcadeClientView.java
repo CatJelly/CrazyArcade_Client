@@ -29,7 +29,8 @@ import java.awt.GridLayout;
 
 public class CrazyArcadeClientView extends JFrame {
 	public static Random random = new Random();
-	public static final int BLOCK_SIZE = 52;
+	public static final int BLOCK_SIZE = 43;
+	public ImageIcon backgroundImg = null;
 	/* status
 	 * 0 : 타이틀 화면 , 1 : 스타트, 2 : 게임화면, 3 : 게임 오버    
 	 */
@@ -50,8 +51,6 @@ public class CrazyArcadeClientView extends JFrame {
 
 	private ObjectInputStream ois;
 	private ObjectOutputStream oos;
-
-	private JLabel lblUserName;
 	// private JTextArea textArea;
 	private JTextPane textArea;
 
@@ -80,17 +79,29 @@ public class CrazyArcadeClientView extends JFrame {
 	public CrazyArcadeClientView(String username, String ip_addr, String port_no)  {
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1200, 900);
-		contentPane = new JPanel();
+		setBounds(100, 100, 1070, 827);
+		contentPane = new JPanel() {
+			public void paintComponent(Graphics g) {
+				super.paintComponent(g);
+		        g.drawImage(backgroundImg.getImage(), 0, 0, null);
+		    }
+		};
+		backgroundImg = new ImageIcon("maps/play_bg.png");
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
+		
 		contentPane.setLayout(null);
 		
 		gamePanel = new GamePanel();
+		gamePanel.setBounds(26,50, 780, 680);
 		contentPane.add(gamePanel);
 		
+//		JPanel panel_1 = new JPanel();
+//		panel_1.setBounds(40, 47, 742, 550);
+//		contentPane.add(panel_1);
+		
 		startBtn = new JButton("start button");
-		startBtn.setBounds(949, 65, 120, 50);
+		startBtn.setBounds(892, 66, 120, 50);
 		startBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				ChatMsg msg = new ChatMsg(UserName, "900", "Game Start");
@@ -104,7 +115,7 @@ public class CrazyArcadeClientView extends JFrame {
 		map = new Map(gamePanel);
 
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(854, 143, 315, 467);
+		scrollPane.setBounds(854, 143, 167, 459);
 		contentPane.add(scrollPane);
 		textArea = new JTextPane();
 		scrollPane.setViewportView(textArea);
@@ -112,31 +123,22 @@ public class CrazyArcadeClientView extends JFrame {
 		textArea.setFont(new Font("굴림체", Font.PLAIN, 14));
 
 		txtInput = new JTextField();
-		txtInput.setBounds(916, 621, 184, 40);
+		txtInput.setBounds(864, 612, 184, 40);
 		contentPane.add(txtInput);
 		txtInput.setColumns(10);
 		
 		btnSend = new JButton("Send");
 		btnSend.setFont(new Font("굴림", Font.PLAIN, 9));
-		btnSend.setBounds(1112, 623, 57, 34);
+		btnSend.setBounds(966, 683, 57, 34);
 		contentPane.add(btnSend);
-
-		lblUserName = new JLabel("Name");
-		lblUserName.setBorder(new LineBorder(new Color(0, 0, 0)));
-		lblUserName.setBackground(Color.WHITE);
-		lblUserName.setFont(new Font("굴림", Font.BOLD, 14));
-		lblUserName.setHorizontalAlignment(SwingConstants.CENTER);
-		lblUserName.setBounds(854, 671, 63, 36);
-		contentPane.add(lblUserName);
 		setVisible(true);
 
 		AppendText("User " + username + " connecting " + ip_addr + " " + port_no);
 		UserName = username;
-		lblUserName.setText(username);
 
 		imgBtn = new JButton("+");
 		imgBtn.setFont(new Font("굴림", Font.PLAIN, 16));
-		imgBtn.setBounds(855, 621, 50, 40);
+		imgBtn.setBounds(800, 619, 50, 40);
 		contentPane.add(imgBtn);
 
 		JButton btnExit = new JButton("\uC885\uB8CC");
@@ -148,19 +150,12 @@ public class CrazyArcadeClientView extends JFrame {
 				System.exit(0);
 			}
 		});
-		btnExit.setBounds(1112, 667, 57, 40);
+		btnExit.setBounds(882, 680, 57, 40);
 		contentPane.add(btnExit);
+		
+
 
 		view = this;
-		
-		btnDrawing = new JButton("Drawing");
-		btnDrawing.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				drawing = new JavaGameClientViewDrawing(username, view);
-			}
-		});
-		btnDrawing.setBounds(926, 671, 174, 40);
-		contentPane.add(btnDrawing);
 		
 
 		try {
@@ -186,7 +181,8 @@ public class CrazyArcadeClientView extends JFrame {
 			AppendText("connect error");
 		}
 	}
-
+	
+	
 	// Server Message를 수신해서 화면에 표시
 	class ListenNetwork extends Thread {
 		public void run() {
@@ -298,7 +294,7 @@ public class CrazyArcadeClientView extends JFrame {
 		//public final int MOTION_DELAY = 30; //노트북
 		public final int MOTION_DELAY = 120; //컴퓨터
 		public Graphics buffG;
-		public int xAdd = 10;
+		public int xAdd = 20;
 		public int yAdd = 10;
 
 		GamePanel() {
@@ -308,7 +304,6 @@ public class CrazyArcadeClientView extends JFrame {
 			addKeyListener(new PlayerKeyListener());
 			setFocusable(true);
 			requestFocus();
-			buffG = getGraphics();
 		}
 		
 		@Override
@@ -322,7 +317,7 @@ public class CrazyArcadeClientView extends JFrame {
 		
 		@Override
 		public void paint(Graphics g) {
-			super.paint(g);
+			super.paint(g);			
 			if(mapObjects != null) {
 				for(int i=0; i<mapObjects.length; i++) {
 					for(int j=0; j<mapObjects[i].length; j++) {
@@ -333,8 +328,8 @@ public class CrazyArcadeClientView extends JFrame {
 							if(!(mapObjects[i][j] instanceof Bomb)) {
 								g.drawImage(
 										mapObjects[i][j].image.getImage(),
-										x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										x * (BLOCK_SIZE + 6) + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE + 6, BLOCK_SIZE + 10, 
 										null);
 							}
 						}														
@@ -351,8 +346,8 @@ public class CrazyArcadeClientView extends JFrame {
 							if(bomb.explodeStatus == false) {
 								g.drawImage(
 										bomb.bombImage[(int)(motionIdx++ / bomb.BOMB_DELAY)].getImage(),
-										x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										x * (BLOCK_SIZE + 6) + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE + 6, BLOCK_SIZE + 10, 
 										null);
 								if(motionIdx == bomb.bombImage.length * bomb.BOMB_DELAY) {
 									motionIdx = 0;
@@ -362,8 +357,8 @@ public class CrazyArcadeClientView extends JFrame {
 							else {
 								g.drawImage(
 										bomb.centerImage[(int)(motionIdx++ / bomb.CENTER_DELAY)].getImage(),
-										x * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-										BLOCK_SIZE, BLOCK_SIZE + 10, 
+										x * (BLOCK_SIZE + 6) + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+										BLOCK_SIZE + 6, BLOCK_SIZE + 10, 
 										null);
 								if(motionIdx == bomb.bombImage.length * bomb.CENTER_DELAY) {
 									motionIdx = 0;
@@ -373,29 +368,29 @@ public class CrazyArcadeClientView extends JFrame {
 								if(bomb.explode(x - 1, y)) {
 									g.drawImage(
 											bomb.left1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
-											(x - 1) * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-											BLOCK_SIZE, BLOCK_SIZE + 10, 
+											(x - 1) * (BLOCK_SIZE + 6) + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+											BLOCK_SIZE + 6, BLOCK_SIZE + 10, 
 											null);	
 								}
 								if(bomb.explode(x + 1, y)) {
 									g.drawImage(
 											bomb.right1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
-											(x + 1) * BLOCK_SIZE + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
-											BLOCK_SIZE, BLOCK_SIZE + 10, 
+											(x + 1) * (BLOCK_SIZE + 6) + xAdd, y * BLOCK_SIZE + i * 7 + yAdd, 
+											BLOCK_SIZE + 6, BLOCK_SIZE + 10, 
 											null);
 								}
 								if(bomb.explode(x, y - 1)) {
 									g.drawImage(
 											bomb.up1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
-											x * BLOCK_SIZE + xAdd, (y - 1) * BLOCK_SIZE + i * 7 + yAdd, 
-											BLOCK_SIZE, BLOCK_SIZE + 10, 
+											x * (BLOCK_SIZE + 6) + xAdd, (y - 1) * BLOCK_SIZE + i * 7 + yAdd, 
+											BLOCK_SIZE + 6, BLOCK_SIZE + 10, 
 											null);	
 								}
 								if(bomb.explode(x, y + 1)) {
 									g.drawImage(
 											bomb.down1Image[(int)(explodeIdx / bomb.EXPLODE_DELAY)].getImage(),
-											x * BLOCK_SIZE + xAdd, (y + 1) * BLOCK_SIZE + i * 7 + yAdd, 
-											BLOCK_SIZE, BLOCK_SIZE + 10, 
+											x * (BLOCK_SIZE + 6) + xAdd, (y + 1) * BLOCK_SIZE + i * 7 + yAdd, 
+											BLOCK_SIZE + 6, BLOCK_SIZE + 10, 
 											null);	
 								}
 								explodeIdx++;
@@ -427,8 +422,8 @@ public class CrazyArcadeClientView extends JFrame {
 			if(players != null) {
 				for(int i=0; i<players.length; i++) {
 					if(players[i] != null) {
-						int xPosition = players[i].xPos * BLOCK_SIZE + players[i].left_right + xAdd;
-						int yPosition = players[i].yPos * BLOCK_SIZE + players[i].up_down + yAdd;
+						int xPosition = players[i].xPos * (BLOCK_SIZE + 6) + players[i].left_right + xAdd;
+						int yPosition = players[i].yPos * (BLOCK_SIZE + 6)+ players[i].up_down + yAdd;
 						int motionIdx = players[i].motionIdx;
 						
 						switch(players[i].direction) {
@@ -630,7 +625,6 @@ public class CrazyArcadeClientView extends JFrame {
 	}
 
 	ImageIcon icon1 = new ImageIcon("src/icon1.jpg");
-	private JButton btnDrawing;
 
 	public void AppendIcon(ImageIcon icon) {
 		int len = textArea.getDocument().getLength();
@@ -894,6 +888,4 @@ public class CrazyArcadeClientView extends JFrame {
 		}
 		
 	}
-	
-	
 }
